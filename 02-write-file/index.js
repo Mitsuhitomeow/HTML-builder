@@ -5,22 +5,22 @@ const { stdout, stdin } = process;
 const writeFileAsync = async (filePath, data) => {
   fs.writeFile(filePath, data, (err) => {
     if (err) throw err;
-  })
+  });
 };
 
 const appendFileAsync = async (filePath, data) => {
   fs.appendFile(filePath, data, (err) => {
     if (err) throw err;
-  })
+  });
 };
 
 const readAndCheckFileAsync = async (filePath) => {
   const data = await fs.readFile(filePath, 'utf-8');
   const lines = data.split('\r\n');
-  const lastWord = lines[lines.length - 2]
+  const lastWord = lines[lines.length - 2];
 
   if (lastWord === 'exit') {
-    process.exit()
+    process.exit();
   }
 };
 
@@ -29,18 +29,18 @@ const main = async () => {
 
   try {
     await writeFileAsync(filePath, '');
-    stdout.write('Enter message...\n')
+    stdout.write('Enter message...\n');
 
     stdin.on('data', async (data) => {
-      await appendFileAsync(filePath, data)
-      await readAndCheckFileAsync(filePath)
+      await appendFileAsync(filePath, data);
+      await readAndCheckFileAsync(filePath);
     });
 
-    process.on('SIGINT', () => process.exit())
-    process.on('exit', () => stdout.write('Goodbye...'))
+    process.on('SIGINT', () => process.exit());
+    process.on('exit', () => stdout.write('Goodbye...'));
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
   }
-}
+};
 
-main()
+main();
