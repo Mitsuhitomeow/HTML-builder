@@ -1,30 +1,46 @@
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
 const { stdout, stdin } = process;
 
-fs.writeFile(path.resolve(__dirname, 'text.txt'), '', (err) => {
-  if (err) throw err;
-});
-
-stdout.write('Enter a message...\n');
-stdin.on('data', (data) => {
-  fs.appendFile(path.resolve(__dirname, 'text.txt'), data, (err) => {
+const writeFileAsync = async (filePath, data) => {
+  fs.writeFile(filePath, data, (err) => {
     if (err) throw err;
-  });
+  })
+};
 
-  const readStream = fs.createReadStream(
-    path.resolve(__dirname, 'text.txt'),
-    'utf-8',
-  );
-  readStream.on('data', (chunk) => {
-    let chunkArray = chunk.split('\r\n');
-    chunkArray = chunkArray.flat();
-    let lastWord = chunkArray[chunkArray.length - 2];
+const appendFileAsync = async (filePath, data) => {
+  fs.appendFile(filePath, data, (err) => {
+    if (err) throw err;
+  })
+};
 
-    if (lastWord === 'exit') {
-      process.exit();
-    }
-  });
-});
-process.on('SIGINT', () => process.exit());
-process.on('exit', () => stdout.write('Goodbye...'));
+const readAndCheckFileAsync = async (filePath) => {
+  const data = await fs.readFile(filePath, 'utf-8');
+  const lines = data.split('\r\n');
+  const lastWord = lines[lines.length - 2]
+
+  if (lastWord === 'exit') {
+    process.exit()
+  }
+};
+
+const main = async () => {
+  const filePath = path.resolve(__dirname, 'text.txt');
+
+  try {
+    await writeFileAsync(filePath, '');
+    stdout.write('Enter message...\n')
+
+    stdin.on('data', async (data) => {
+      await appendFileAsync(filePath, data)
+      await readAndCheckFileAsync(filePath)
+    });
+
+    process.on('SIGINT', () => process.exit())
+    process.on('exit', () => stdout.write('Goodbye...'))
+  } catch (error) {
+    console.error('Error:', error)
+  }
+}
+
+main()
